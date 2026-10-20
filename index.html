@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Cloud Studio — Free Word Cloud Generator</title>
+<style>
+  :root{
+    --emerald:#103E32; --emerald-deep:#0B352A; --lime:#DCF5B5; --paper:#F7F8F2;
+    --gold:#C9A227; --ink:#1E2A24; --muted:#5C6B62; --line:#D9E2D2; --error:#B3261E;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif; background:var(--paper); color:var(--ink); line-height:1.5; font-size:15.5px;}
+  .wrap{max-width:1180px; margin:0 auto; padding:20px 16px 44px;}
+  header{display:flex; align-items:center; gap:14px; background:var(--emerald); border-radius:14px; padding:16px 20px; color:var(--paper);}
+  .mono{flex:0 0 auto; width:52px; height:52px; border:2px solid var(--gold); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:Georgia, serif; font-size:30px; color:var(--gold);}
+  header h1{font-family:Georgia, serif; font-size:26px; font-weight:700;}
+  header p{font-size:12.5px; color:var(--lime); letter-spacing:1.6px; text-transform:uppercase;}
+  .intro{margin:14px 2px 2px; font-size:15px;}
+  .layout{display:grid; grid-template-columns:350px 1fr; gap:16px; margin-top:16px; align-items:start;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:16px; box-shadow:0 2px 10px rgba(16,62,50,.06);}
+  .card h2{font-family:Georgia, serif; font-size:18px; color:var(--emerald); margin-bottom:10px;}
+  label{display:block; font-size:13px; font-weight:700; color:var(--emerald); margin:10px 0 5px;}
+  label:first-of-type{margin-top:0;}
+  textarea{width:100%; min-height:130px; font-size:15px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; resize:vertical; font-family:inherit;}
+  select, input[type=text], input[type=number]{width:100%; font-size:15px; padding:9px 11px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink);}
+  textarea:focus, select:focus, input:focus{outline:3px solid var(--lime); border-color:var(--emerald);}
+  input[type=range]{width:100%; accent-color:var(--emerald);}
+  input[type=color]{width:52px; height:36px; border:1.5px solid var(--line); border-radius:8px; background:#fff; padding:2px;}
+  .check{display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:600; color:var(--ink); margin:8px 0;}
+  .check input{width:18px; height:18px; accent-color:var(--emerald);}
+  .btn{border-radius:10px; padding:9px 15px; font-size:14.5px; font-weight:700; cursor:pointer; border:1.5px solid var(--emerald); background:#fff; color:var(--emerald);}
+  .btn:hover{background:var(--lime);}
+  .btn.primary{background:var(--emerald); color:var(--lime);}
+  .btn.primary:hover{background:var(--emerald-deep);}
+  .btn.small{padding:6px 11px; font-size:13.5px;}
+  .btnrow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .stat{font-size:14px; color:var(--muted); margin-top:8px;}
+  .stat b{color:var(--emerald);}
+  .err{display:none; margin-top:8px; color:var(--error); font-size:14px; font-weight:600;}
+  table.freq{width:100%; border-collapse:collapse; font-size:14px; margin-top:8px;}
+  table.freq th{text-align:left; color:var(--emerald); font-size:12.5px; padding:4px 6px; border-bottom:1.5px solid var(--line);}
+  table.freq td{padding:4px 6px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  table.freq td.n{text-align:right; font-variant-numeric:tabular-nums;}
+  .mini{border:1px solid var(--line); background:#fff; border-radius:6px; width:26px; height:26px; cursor:pointer; font-size:13px; line-height:1;}
+  .mini:hover{border-color:var(--emerald);}
+  .mini.on{background:var(--gold); color:#fff; border-color:var(--gold);}
+  .previewCard{position:sticky; top:14px;}
+  .canvasWrap{border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  canvas{display:block; width:100%; height:auto;}
+  .checker{background:repeating-conic-gradient(#E4E9DE 0% 25%, #FFFFFF 0% 50%) 0 0/22px 22px;}
+  .clickInfo{margin-top:10px; font-size:14.5px; font-weight:600; color:var(--emerald); min-height:22px;}
+  .note{font-size:13px; color:var(--muted); margin-top:10px; border-top:1px solid var(--line); padding-top:10px;}
+  .swatches{display:flex; gap:8px; align-items:center; margin-top:4px;}
+  footer{margin-top:8px; font-size:13px; color:var(--muted); border-top:1px solid var(--line); padding-top:12px;}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .previewCard{position:static;}
+    header h1{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mono">A</div>
+    <div>
+      <h1>Word Cloud Studio</h1>
+      <p>Asif SaaS Studio</p>
+    </div>
+  </header>
+
+  <p class="intro">Turn text, documents and datasets into beautiful word clouds — free, private, and entirely in your browser. Paste text or upload a file, check the word frequencies, shape the design, and export up to 4K for presentations, papers and social media.</p>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2>1 · Your text</h2>
+        <label for="textIn">Paste or type text</label>
+        <textarea id="textIn" placeholder="Paste an article, speech, survey answers, or a keyword list here…"></textarea>
+        <div class="btnrow">
+          <button class="btn primary" id="fileBtn" type="button">Upload a file</button>
+          <input type="file" id="fileIn" accept=".txt,.md,.csv,.docx,.pdf,.xlsx" style="display:none;">
+          <button class="btn" id="sampleBtn" type="button">Sample text</button>
+          <button class="btn" id="clearBtn" type="button">Clear</button>
+        </div>
+        <div class="stat" id="fileStat">Files accepted: TXT, MD, CSV, DOCX, PDF, XLSX — read locally on your device, never uploaded.</div>
+        <div class="err" id="fileErr"></div>
+        <div class="stat" id="textStat"></div>
+      </div>
+
+      <div class="card">
+        <h2>2 · Analyse words</h2>
+        <label for="maxWords">Maximum words: <span id="maxWordsVal">60</span></label>
+        <input type="range" id="maxWords" min="10" max="150" step="5" value="60">
+        <label for="minLen">Minimum word length: <span id="minLenVal">2</span></label>
+        <input type="range" id="minLen" min="1" max="6" step="1" value="2">
+        <label class="check"><input type="checkbox" id="stopChk" checked> Remove common stop words (English, Urdu, Arabic)</label>
+        <label class="check"><input type="checkbox" id="numChk" checked> Remove numbers</label>
+        <label class="check"><input type="checkbox" id="phraseChk" checked> Detect 2-word phrases (e.g. “food safety”)</label>
+        <div id="freqWrap"></div>
+        <div class="btnrow">
+          <button class="btn small" id="copyCsvBtn" type="button">Copy frequency data</button>
+          <button class="btn small" id="dlCsvBtn" type="button">Download CSV</button>
+        </div>
+        <label for="addWord">Add or boost a word</label>
+        <div style="display:grid; grid-template-columns:1fr 84px auto; gap:8px;">
+          <input type="text" id="addWord" placeholder="Word or phrase">
+          <input type="number" id="addCount" min="1" value="5" aria-label="Count">
+          <button class="btn small" id="addWordBtn" type="button">Add</button>
+        </div>
+        <p class="note"><strong>Honest note for researchers:</strong> this counts how often words and phrases appear. Frequency is not the same as validated qualitative themes — treat the cloud as a starting point for analysis, not a substitute for coding your data.</p>
+      </div>
+
+      <div class="card">
+        <h2>3 · Design</h2>
+        <label for="shapeSel">Cloud shape</label>
+        <select id="shapeSel">
+          <option value="rect">Rectangle (free)</option>
+          <option value="circle">Circle</option>
+          <option value="heart">Heart</option>
+          <option value="star">Star</option>
+          <option value="cloud" selected>Cloud</option>
+          <option value="bulb">Lightbulb</option>
+          <option value="tree">Tree</option>
+          <option value="custom">Custom image silhouette…</option>
+        </select>
+        <div id="maskRow" style="display:none;">
+          <div class="btnrow">
+            <button class="btn small" id="maskBtn" type="button">Choose silhouette image</button>
+            <input type="file" id="maskIn" accept="image/*" style="display:none;">
+          </div>
+          <div class="stat">Dark or opaque parts of the image become the cloud area.</div>
+        </div>
+        <label for="fontSel">Font</label>
+        <select id="fontSel">
+          <option value="Georgia, serif">Georgia (serif)</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+          <option value="Impact, 'Arial Black', sans-serif">Impact (bold display)</option>
+          <option value="'Times New Roman', serif">Times New Roman</option>
+          <option value="'Courier New', monospace">Courier New</option>
+          <option value="'Noto Nastaliq Urdu', 'Traditional Arabic', serif">Urdu / Arabic (Noto, if installed)</option>
+        </select>
+        <label for="weightSel">Font weight &amp; orientation</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <select id="weightSel">
+            <option value="bold">Bold</option>
+            <option value="normal">Normal</option>
+          </select>
+          <select id="orientSel">
+            <option value="h">Horizontal</option>
+            <option value="mix" selected>Mixed (some vertical)</option>
+            <option value="v">Vertical</option>
+          </select>
+        </div>
+        <label for="themeSel">Colour theme</label>
+        <select id="themeSel">
+          <option value="ocean">Ocean Blue</option>
+          <option value="studio" selected>Studio Emerald</option>
+          <option value="sunset">Sunset</option>
+          <option value="berry">Berry</option>
+          <option value="royal">Royal Gold</option>
+          <option value="mono">Mono Ink</option>
+          <option value="festival">Festival</option>
+          <option value="custom">Custom colours…</option>
+        </select>
+        <div class="swatches" id="customRow" style="display:none;">
+          <input type="color" id="col1" value="#103E32">
+          <input type="color" id="col2" value="#C9A227">
+          <input type="color" id="col3" value="#57A773">
+          <span class="stat">Your three colours</span>
+        </div>
+        <label for="bgSel">Background</label>
+        <select id="bgSel">
+          <option value="#FFFFFF">White</option>
+          <option value="#F7F8F2" selected>Studio paper</option>
+          <option value="#103E32">Emerald (dark)</option>
+          <option value="#101418">Charcoal</option>
+          <option value="transparent">Transparent (PNG / SVG export)</option>
+        </select>
+        <label for="padRange">Word spacing: <span id="padVal">3</span></label>
+        <input type="range" id="padRange" min="0" max="10" step="1" value="3">
+        <div class="btnrow">
+          <button class="btn" id="regenBtn" type="button">↻ Regenerate layout</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>4 · Export</h2>
+        <label for="sizeSel">Export size</label>
+        <select id="sizeSel">
+          <option value="1">960 px (web)</option>
+          <option value="2" selected>1920 px (Full HD 1080p)</option>
+          <option value="2.67">2560 px (2K)</option>
+          <option value="4">3840 px (4K / print)</option>
+        </select>
+        <div class="btnrow">
+          <button class="btn primary" id="pngBtn" type="button">PNG</button>
+          <button class="btn" id="jpgBtn" type="button">JPG</button>
+          <button class="btn" id="svgBtn" type="button">SVG</button>
+          <button class="btn" id="pdfBtn" type="button">PDF</button>
+        </div>
+        <div class="stat">Transparent background applies to PNG and SVG. PDF and JPG are flattened onto the chosen background (white if transparent is selected).</div>
+      </div>
+    </div>
+
+    <div class="card previewCard">
+      <h2>Live preview <span style="font-family:inherit; font-size:13px; color:var(--muted);" id="placeStat"></span></h2>
+      <div class="canvasWrap" id="canvasWrap">
+        <canvas id="cloud" width="960" height="600"></canvas>
+      </div>
+      <div class="clickInfo" id="clickInfo">Tip: click any word in the cloud to see its frequency.</div>
+      <p class="note">Everything runs on your device — your text and files are never sent anywhere. Word Cloud Studio v1.0 · Asif SaaS Studio, by Dr. Asif Ahmad.</p>
+    </div>
+  </div>
+
+  <footer>Word Cloud Studio — Free Word Cloud Generator · Part of Asif SaaS Studio. Frequency analysis counts words and two-word phrases; it is not AI keyword extraction and not a substitute for qualitative thematic analysis (see the roadmap in the documentation).</footer>
+</div>
+
+<script>
+/* PURE-CORE-START */
+/* ---------------- Stop words (basic lists) ---------------- */
+var STOP_EN = ("a,about,above,after,again,against,all,am,an,and,any,are,aren,as,at,be,because,been,before,being,below,between,both,but,by,could,did,do,does,doing,down,during,each,few,for,from,further,had,has,have,having,he,her,here,hers,herself,him,himself,his,how,i,if,in,into,is,it,its,itself,let,me,more,most,my,of,off,on,once,only,or,other,our,ours,ourselves,out,over,own,s,same,shan,she,should,so,some,such,t,than,that,the,their,theirs,them,themselves,then,there,these,they,this,those,through,to,too,under,until,up,very,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,you,your,yours,yourself,yourselves,also,one,two,get,like,just,can,could,may,might,must,shall,per,via,etc").split(",");
+var STOP_UR = ("اور,میں,ہے,کے,سے,کو,یہ,وہ,بھی,پر,کا,کی,نے,ایک,جو,تک,نہیں,ہیں,تھا,تھی,تھے,ہم,تم,آپ,اس,ان,جب,تو,پھر,اب,کیا,کیوں,कैसे").split(",");
+var STOP_AR = ("في,من,إلى,على,أن,إن,ما,لا,لم,هو,هي,كان,مع,هذا,هذه,ذلك,التي,الذي,عن,بعد,عند,لدى,بين,غير,أي,كل,لأن,لكن,ثم,أو,و,يا,إذا,قد,لقد,ذو,ذات,نحو,لدى").split(",");
+var STOP_SET = {};
+STOP_EN.concat(STOP_UR, STOP_AR).forEach(function(w){ STOP_SET[w] = 1; });
+
+/* ---------------- Tokenizing & frequency ---------------- */
+/* Word = run of Unicode letters/marks with optional inner apostrophe; numbers are separate tokens. */
+var TOKEN_RE = /[\p{L}\p{M}]+(?:['\u2019][\p{L}\p{M}]+)?|\d+(?:[.,]\d+)?/gu;
+function tokenize(text){
+  if (!text) return [];
+  var m = String(text).toLowerCase().match(TOKEN_RE);
+  return m || [];
+}
+function isNumberToken(t){ return /^\d/.test(t); }
+function analyze(text, opts){
+  var tokens = tokenize(text);
+  var total = tokens.length;
+  var freq = {}, kept = [];
+  tokens.forEach(function(t){
+    if (isNumberToken(t)){
+      if (opts.removeNumbers) return;
+    } else {
+      if (t.replace(/['\u2019]/g, "").length < opts.minLen) return;
+      if (opts.removeStop && STOP_SET[t]) return;
+    }
+    freq[t] = (freq[t] || 0) + 1;
+    kept.push(t);
+  });
+  var phrases = {};
+  if (opts.phrases){
+    for (var i = 0; i + 1 < kept.length; i++){
+      var a = kept[i], b = kept[i + 1];
+      if (isNumberToken(a) || isNumberToken(b)) continue;
+      var key = a + " " + b;
+      phrases[key] = (phrases[key] || 0) + 1;
+    }
+    Object.keys(phrases).forEach(function(k){
+      if (phrases[k] >= 2) freq[k] = phrases[k]; else delete phrases[k];
+    });
+  }
+  var entries = Object.keys(freq).map(function(w){ return { word:w, count:freq[w], phrase: w.indexOf(" ") > 0 }; });
+  entries.sort(function(x, y){ return y.count - x.count || (x.word < y.word ? -1 : 1); });
+  return { total: total, unique: entries.length, entries: entries, tokensKept: kept.length };
+}
+
+/* ---------------- Palettes ---------------- */
+var PALETTES = {
+  ocean:   ["#0B5394", "#0077B6", "#2E86AB", "#48CAE4", "#00B4D8"],
+  studio:  ["#103E32", "#1B7A5A", "#57A773", "#C9A227", "#7FB069"],
+  sunset:  ["#9D0208", "#DC2F02", "#E85D04", "#F48C06", "#FAA307"],
+  berry:   ["#5F0F40", "#9A031E", "#E36414", "#FB8B24", "#0F4C5C"],
+  royal:   ["#7A5C00", "#C9A227", "#8C6D1F", "#B8860B", "#5C4A00"],
+  mono:    ["#141414", "#2E2E2E", "#4A4A4A", "#6E6E6E", "#8F8F8F"],
+  festival:["#EF476F", "#F78C6B", "#FFD166", "#06D6A0", "#118AB2"]
+};
+function paletteColor(palette, i, rand){
+  var base = palette[i % palette.length];
+  return base;
+}
+
+/* ---------------- Shape masks (point tests in a W x H box) ---------------- */
+function inPolygon(x, y, pts){
+  var inside = false;
+  for (var i = 0, j = pts.length - 1; i < pts.length; j = i++){
+    var xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function starPoints(cx, cy, rO, rI){
+  var pts = [];
+  for (var i = 0; i < 10; i++){
+    var r = i % 2 === 0 ? rO : rI, a = -Math.PI / 2 + i * Math.PI / 5;
+    pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+  }
+  return pts;
+}
+var MASKS = {
+  rect: function(x, y, W, H){ return x >= 2 && y >= 2 && x <= W - 2 && y <= H - 2; },
+  circle: function(x, y, W, H){
+    var dx = (x - W / 2) / (W * 0.49), dy = (y - H / 2) / (H * 0.49);
+    return dx * dx + dy * dy <= 1;
+  },
+  heart: function(x, y, W, H){
+    var nx = (x - W / 2) / (W * 0.36), ny = (H * 0.58 - y) / (H * 0.42);
+    var a = nx, b = ny;
+    return Math.pow(a * a + b * b - 1, 3) - a * a * b * b * b <= 0 &&
+           x >= W * 0.06 && x <= W * 0.94 && y >= H * 0.04 && y <= H * 0.97;
+  },
+  star: function(x, y, W, H){
+    return inPolygon(x, y, starPoints(W / 2, H / 2, Math.min(W, H) * 0.52, Math.min(W, H) * 0.22));
+  },
+  cloud: function(x, y, W, H){
+    var blobs = [[0.32, 0.58, 0.20], [0.50, 0.42, 0.26], [0.68, 0.58, 0.20], [0.50, 0.66, 0.28]];
+    for (var i = 0; i < blobs.length; i++){
+      var dx = (x - blobs[i][0] * W) / (blobs[i][2] * W), dy = (y - blobs[i][1] * H) / (blobs[i][2] * W);
+      if (dx * dx + dy * dy <= 1) return true;
+    }
+    return x >= W * 0.16 && x <= W * 0.84 && y >= H * 0.52 && y <= H * 0.78;
+  },
+  bulb: function(x, y, W, H){
+    var dx = (x - W / 2) / (W * 0.30), dy = (y - H * 0.40) / (H * 0.36);
+    if (dx * dx + dy * dy <= 1) return true;
+    var pts = [[W * 0.40, H * 0.66], [W * 0.60, H * 0.66], [W * 0.565, H * 0.88], [W * 0.435, H * 0.88]];
+    return inPolygon(x, y, pts);
+  },
+  tree: function(x, y, W, H){
+    var tiers = [
+      [[W * 0.5, H * 0.05], [W * 0.70, H * 0.42], [W * 0.30, H * 0.42]],
+      [[W * 0.5, H * 0.28], [W * 0.76, H * 0.66], [W * 0.24, H * 0.66]],
+      [[W * 0.5, H * 0.50], [W * 0.82, H * 0.88], [W * 0.18, H * 0.88]]
+    ];
+    for (var i = 0; i < tiers.length; i++) if (inPolygon(x, y, tiers[i])) return true;
+    return x >= W * 0.465 && x <= W * 0.535 && y >= H * 0.86 && y <= H * 0.97;
+  }
+};
+function pointInMask(mask, x, y, W, H, customGrid){
+  if (mask === "custom"){
+    if (!customGrid) return true;
+    var gx = Math.floor(x / W * customGrid.w), gy = Math.floor(y / H * customGrid.h);
+    if (gx < 0 || gy < 0 || gx >= customGrid.w || gy >= customGrid.h) return false;
+    return customGrid.cells[gy * customGrid.w + gx] === 1;
+  }
+  var fn = MASKS[mask] || MASKS.rect;
+  return fn(x, y, W, H);
+}
+function boxInMask(mask, cx, cy, w, h, W, H, customGrid){
+  var pts = [[cx, cy], [cx - w / 2, cy - h / 2], [cx + w / 2, cy - h / 2], [cx - w / 2, cy + h / 2], [cx + w / 2, cy + h / 2], [cx, cy - h / 2], [cx, cy + h / 2], [cx - w / 2, cy], [cx + w / 2, cy]];
+  for (var i = 0; i < pts.length; i++) if (!pointInMask(mask, pts[i][0], pts[i][1], W, H, customGrid)) return false;
+  return true;
+}
+
+/* ---------------- Layout engine ----------------
+   entries: [{word, count}] sorted desc. measure(word, sizePx, fontSpec) -> width px.
+   Returns placed words with x, y (centre), size, rotate (0|-90), color. */
+function lcg(seed){ var s = seed >>> 0 || 1; return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function layoutWords(entries, opts, measure){
+  var W = opts.width, H = opts.height;
+  var rand = lcg(opts.seed || 42);
+  var placed = [], boxes = [];
+  if (!entries.length) return placed;
+  var maxC = entries[0].count, minC = entries[entries.length - 1].count;
+  var maxSize = Math.min(W, H) * 0.19, minSize = Math.max(11, Math.min(W, H) * 0.026);
+  function sizeFor(count){
+    if (maxC === minC) return (maxSize + minSize) / 2;
+    var t = Math.pow((count - minC) / (maxC - minC), 0.55);
+    return minSize + t * (maxSize - minSize);
+  }
+  entries.forEach(function(e, idx){
+    var size = sizeFor(e.count) * (e.boost || 1);
+    var rotate = 0;
+    if (opts.orientation === "v") rotate = -90;
+    else if (opts.orientation === "mix") rotate = rand() < 0.28 ? -90 : 0;
+    var w = measure(e.word, size, opts), h = size * (opts.tallScript ? 1.75 : 1.06);
+    var bw = rotate === 0 ? w : h, bh = rotate === 0 ? h : w;
+    var found = null;
+    var cx = W / 2, cy = H / 2;
+    var maxR = Math.max(W, H);
+    for (var r = 0; r < maxR && !found; r += 3){
+      var steps = r === 0 ? 1 : Math.max(8, Math.floor(2 * Math.PI * r / 9));
+      for (var sIdx = 0; sIdx < steps; sIdx++){
+        var a = (sIdx / steps) * Math.PI * 2 + idx * 0.7;
+        var x = cx + r * Math.cos(a) * (W / H > 1 ? 1.25 : 1), y = cy + r * Math.sin(a) * 0.82;
+        if (x - bw / 2 < 1 || x + bw / 2 > W - 1 || y - bh / 2 < 1 || y + bh / 2 > H - 1) continue;
+        if (!boxInMask(opts.shape, x, y, bw, bh, W, H, opts.customGrid)) continue;
+        var hit = false;
+        for (var b = 0; b < boxes.length; b++){
+          var B = boxes[b];
+          if (Math.abs(x - B.x) * 2 < bw + B.w + opts.padding * 2 && Math.abs(y - B.y) * 2 < bh + B.h + opts.padding * 2){ hit = true; break; }
+        }
+        if (!hit){ found = { x:x, y:y }; break; }
+      }
+    }
+    if (found){
+      boxes.push({ x:found.x, y:found.y, w:bw, h:bh });
+      placed.push({ word:e.word, count:e.count, x:found.x, y:found.y, size:size, rotate:rotate,
+        color: e.highlight ? "#C9A227" : paletteColor(opts.palette, idx, rand), w:bw, h:bh });
+    }
+  });
+  return placed;
+}
+
+/* ---------------- SVG export ---------------- */
+function xmlEsc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function buildSVG(placed, opts){
+  var W = opts.width, H = opts.height, parts = [];
+  parts.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">');
+  if (opts.background && opts.background !== "transparent") parts.push('<rect width="' + W + '" height="' + H + '" fill="' + opts.background + '"/>');
+  placed.forEach(function(p){
+    var rot = p.rotate ? ' transform="rotate(' + p.rotate + ' ' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ')"' : "";
+    parts.push('<text x="' + p.x.toFixed(1) + '" y="' + p.y.toFixed(1) + '" font-family="' + xmlEsc(opts.fontFamily) + '" font-size="' + p.size.toFixed(1) + '" font-weight="' + opts.fontWeight + '" fill="' + p.color + '" text-anchor="middle" dominant-baseline="central"' + rot + '>' + xmlEsc(p.word) + '</text>');
+  });
+  parts.push("</svg>");
+  return parts.join("\n");
+}
+function freqToCSV(entries, total){
+  var lines = ["word,count,percent_of_kept_words"];
+  entries.forEach(function(e){
+    var pctTxt = total > 0 ? (e.count / total * 100).toFixed(2) : "0";
+    var w = /[",\n]/.test(e.word) ? '"' + e.word.replace(/"/g, '""') + '"' : e.word;
+    lines.push(w + "," + e.count + "," + pctTxt);
+  });
+  return lines.join("\r\n");
+}
+/* PURE-CORE-END */
+</script>
+
+<script>
+/* IO-CORE-START */
+/* ---------------- ZIP reading (stored + deflate, via DecompressionStream) ---------------- */
+async function inflateBytes(bytes, format){
+  var ds = new DecompressionStream(format);
+  var stream = new Blob([bytes]).stream().pipeThrough(ds);
+  var buf = await new Response(stream).arrayBuffer();
+  return new Uint8Array(buf);
+}
+async function unzipEntries(buf){
+  var u8 = new Uint8Array(buf), dv = new DataView(buf);
+  var eocd = -1;
+  for (var i = u8.length - 22; i >= 0 && i > u8.length - 22 - 66000; i--){
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("Not a valid ZIP-based file.");
+  var count = dv.getUint16(eocd + 10, true), off = dv.getUint32(eocd + 16, true);
+  var map = {};
+  for (var n = 0; n < count; n++){
+    if (dv.getUint32(off, true) !== 0x02014b50) break;
+    var method = dv.getUint16(off + 10, true), csize = dv.getUint32(off + 20, true);
+    var nlen = dv.getUint16(off + 28, true), elen = dv.getUint16(off + 30, true), clen = dv.getUint16(off + 32, true);
+    var name = new TextDecoder().decode(u8.slice(off + 46, off + 46 + nlen));
+    var lho = dv.getUint32(off + 42, true);
+    var lnlen = dv.getUint16(lho + 26, true), lelen = dv.getUint16(lho + 28, true);
+    var dataStart = lho + 30 + lnlen + lelen;
+    var raw = u8.slice(dataStart, dataStart + csize);
+    map[name] = { method: method, raw: raw };
+    off += 46 + nlen + elen + clen;
+  }
+  var out = {};
+  for (var key in map){
+    var e = map[key];
+    if (e.method === 0) out[key] = e.raw;
+    else if (e.method === 8) out[key] = await inflateBytes(e.raw, "deflate-raw");
+    else throw new Error("Unsupported ZIP compression in file.");
+  }
+  return out;
+}
+function decodeEntities(s){
+  return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, function(_, d){ return String.fromCharCode(Number(d)); }).replace(/&amp;/g, "&");
+}
+async function extractDocxText(buf){
+  var files = await unzipEntries(buf);
+  var xml = files["word/document.xml"];
+  if (!xml) throw new Error("No document body found in this DOCX file.");
+  var s = new TextDecoder("utf-8").decode(xml);
+  s = s.replace(/<\/w:p>/g, "\n").replace(/<w:tab[^>]*\/>/g, " ").replace(/<[^>]+>/g, "");
+  return decodeEntities(s);
+}
+async function extractXlsxText(buf){
+  var files = await unzipEntries(buf);
+  var shared = [];
+  if (files["xl/sharedStrings.xml"]){
+    var ss = new TextDecoder("utf-8").decode(files["xl/sharedStrings.xml"]);
+    var siParts = ss.split(/<si>/).slice(1);
+    siParts.forEach(function(part){
+      var texts = [], re = /<t[^>]*>([\s\S]*?)<\/t>/g, m;
+      while ((m = re.exec(part.split("</si>")[0])) !== null) texts.push(m[1]);
+      shared.push(decodeEntities(texts.join("")));
+    });
+  }
+  var sheetName = Object.keys(files).filter(function(k){ return /^xl\/worksheets\/sheet\d+\.xml$/.test(k); }).sort()[0];
+  if (!sheetName) throw new Error("No worksheet found in this XLSX file.");
+  var sx = new TextDecoder("utf-8").decode(files[sheetName]);
+  var rows = [], rowRe = /<row[^>]*>([\s\S]*?)<\/row>/g, rm;
+  while ((rm = rowRe.exec(sx)) !== null){
+    var cells = [], cRe = /<c[^>]*?(?:\st="(\w+)")?[^>]*>(?:<v>([\s\S]*?)<\/v>|<is><t[^>]*>([\s\S]*?)<\/t><\/is>)?<\/c>/g, cm;
+    while ((cm = cRe.exec(rm[1])) !== null){
+      var val = "";
+      if (cm[3] !== undefined) val = decodeEntities(cm[3]);
+      else if (cm[2] !== undefined) val = (cm[1] === "s") ? (shared[Number(cm[2])] || "") : cm[2];
+      if (val !== "") cells.push(val);
+    }
+    if (cells.length) rows.push(cells.join(" "));
+  }
+  return rows.join("\n");
+}
+/* ---------------- PDF text extraction (Flate streams, Tj/TJ) ---------------- */
+function ascii85Decode(str){
+  var out = [], group = [];
+  var clean = str.replace(/\s/g, "").replace(/^<~/, "").replace(/~>$/, "");
+  function flush(g, n){
+    var val = 0;
+    for (var i = 0; i < 5; i++) val = val * 85 + ((g[i] || 117) - 33);
+    var bytes = [(val >>> 24) & 255, (val >>> 16) & 255, (val >>> 8) & 255, val & 255];
+    for (var j = 0; j < n - 1; j++) out.push(bytes[j]);
+  }
+  for (var i = 0; i < clean.length; i++){
+    var ch = clean[i];
+    if (ch === "z"){ out.push(0, 0, 0, 0); continue; }
+    group.push(ch.charCodeAt(0));
+    if (group.length === 5){ flush(group, 5); group = []; }
+  }
+  if (group.length) { var n = group.length; while (group.length < 5) group.push(117); flush(group, n); }
+  return new Uint8Array(out);
+}
+function pdfContentText(content){
+  var out = [], i = 0, L = content.length;
+  function readLiteral(start){
+    var s = "", j = start + 1, depth = 1;
+    while (j < L && depth > 0){
+      var c = content[j];
+      if (c === "\\"){
+        var nx = content[j + 1];
+        if (nx === "n") s += "\n"; else if (nx === "r") s += ""; else if (nx === "t") s += " ";
+        else if (nx === "(" || nx === ")" || nx === "\\") s += nx;
+        else if (nx >= "0" && nx <= "7"){ var oct = nx, k = j + 2; while (k < L && content[k] >= "0" && content[k] <= "7" && oct.length < 3){ oct += content[k]; k++; } s += String.fromCharCode(parseInt(oct, 8)); j = k - 2; }
+        else s += nx;
+        j += 2; continue;
+      }
+      if (c === "(") depth++;
+      if (c === ")"){ depth--; if (depth === 0){ j++; break; } }
+      s += c; j++;
+    }
+    return { text: s, end: j };
+  }
+  while (i < L){
+    var ch = content[i];
+    if (ch === "("){
+      var r = readLiteral(i);
+      var after = content.slice(r.end, r.end + 12);
+      if (/^\s*(Tj|TJ|'|")/.test(after) || /\]\s*TJ/.test(content.slice(Math.max(0, i - 400), i) + "§")) out.push(r.text);
+      else if (/TJ/.test(content.slice(r.end, r.end + 400))) out.push(r.text);
+      i = r.end; continue;
+    }
+    i++;
+  }
+  return out.join(" ");
+}
+async function extractPdfText(buf){
+  var u8 = new Uint8Array(buf);
+  var latin = "";
+  for (var i = 0; i < u8.length; i += 8192) latin += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+  var texts = [], re = /stream\r?\n/g, m;
+  while ((m = re.exec(latin)) !== null){
+    var start = m.index + m[0].length;
+    var end = latin.indexOf("endstream", start);
+    if (end < 0) break;
+    var rawEnd = end;
+    if (latin[rawEnd - 1] === "\n") rawEnd--;
+    if (latin[rawEnd - 1] === "\r") rawEnd--;
+    var bytes = u8.slice(start, rawEnd);
+    var content = null;
+    try { content = new TextDecoder("latin1").decode(await inflateBytes(bytes, "deflate")); }
+    catch (e1) {
+      try { content = new TextDecoder("latin1").decode(await inflateBytes(ascii85Decode(new TextDecoder("latin1").decode(bytes)), "deflate")); }
+      catch (e2) { content = null; }
+    }
+    if (content && (content.indexOf("Tj") > -1 || content.indexOf("TJ") > -1)) texts.push(pdfContentText(content));
+    re.lastIndex = end + 9;
+  }
+  var joined = texts.join("\n").replace(/\s+/g, " ").trim();
+  if (joined.length < 20) throw new Error("This PDF's text could not be extracted — it may be scanned or use special fonts. Please copy and paste the text instead.");
+  return joined;
+}
+/* IO-CORE-END */
+
+/* EXPORT-CORE-START */
+/* ---------------- zlib (stored blocks) + image PDF ---------------- */
+function adler32(bytes){
+  var a = 1, b = 0;
+  for (var i = 0; i < bytes.length; i++){ a = (a + bytes[i]) % 65521; b = (b + a) % 65521; }
+  return ((b << 16) | a) >>> 0;
+}
+function zlibStore(bytes){
+  var out = [0x78, 0x01];
+  var pos = 0;
+  do {
+    var len = Math.min(65535, bytes.length - pos);
+    var last = (pos + len >= bytes.length) ? 1 : 0;
+    out.push(last, len & 255, (len >>> 8) & 255, (~len) & 255, ((~len) >>> 8) & 255);
+    for (var i = 0; i < len; i++) out.push(bytes[pos + i]);
+    pos += len;
+  } while (pos < bytes.length);
+  var ad = adler32(bytes);
+  out.push((ad >>> 24) & 255, (ad >>> 16) & 255, (ad >>> 8) & 255, ad & 255);
+  return new Uint8Array(out);
+}
+function buildImagePDF(rgb, w, h){
+  var raw = new Uint8Array(h * (1 + w * 3));
+  var src = 0, dst = 0;
+  for (var y = 0; y < h; y++){
+    raw[dst++] = 0;
+    for (var x = 0; x < w * 3; x++) raw[dst++] = rgb[src++];
+  }
+  var z = zlibStore(raw);
+  var pageW = 612, pageH = Math.round(612 * h / w);
+  var parts = [], offsets = [], cursor = 0;
+  function pushStr(s){ parts.push(s); cursor += s.length; }
+  function pushBytes(b){ parts.push(b); cursor += b.length; }
+  pushStr("%PDF-1.4\n");
+  offsets[1] = cursor; pushStr("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  offsets[2] = cursor; pushStr("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+  offsets[3] = cursor; pushStr("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + pageW + " " + pageH + "] /Resources << /XObject << /Im1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n");
+  offsets[4] = cursor; pushStr("4 0 obj\n<< /Type /XObject /Subtype /Image /Width " + w + " /Height " + h + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length " + z.length + " >>\nstream\n");
+  pushBytes(z); pushStr("\nendstream\nendobj\n");
+  var content = "q " + pageW + " 0 0 " + pageH + " 0 0 cm /Im1 Do Q";
+  offsets[5] = cursor; pushStr("5 0 obj\n<< /Length " + content.length + " >>\nstream\n" + content + "\nendstream\nendobj\n");
+  var xrefPos = cursor;
+  var tail = "xref\n0 6\n0000000000 65535 f \n";
+  for (var n = 1; n <= 5; n++){ var off = String(offsets[n]); while (off.length < 10) off = "0" + off; tail += off + " 00000 n \n"; }
+  tail += "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xrefPos + "\n%%EOF";
+  pushStr(tail);
+  var total = 0; parts.forEach(function(p){ total += (typeof p === "string") ? p.length : p.length; });
+  var outArr = new Uint8Array(total), o = 0;
+  parts.forEach(function(p){
+    if (typeof p === "string"){ for (var i = 0; i < p.length; i++) outArr[o++] = p.charCodeAt(i) & 255; }
+    else { outArr.set(p, o); o += p.length; }
+  });
+  return outArr;
+}
+/* EXPORT-CORE-END */
+
+/* ================= UI ================= */
+var $ = function(id){ return document.getElementById(id); };
+var textIn = $("textIn"), fileErr = $("fileErr"), fileStat = $("fileStat"), textStat = $("textStat");
+var canvas = $("cloud"), ctx = canvas.getContext("2d");
+var BASE_W = 960, BASE_H = 600;
+var seed = 42, customGrid = null;
+var RAW = { total:0, unique:0, entries:[], tokensKept:0 };
+var VIEW = [], PLACED = [];
+var excluded = {}, highlighted = {}, boosts = {}, manual = {};
+var measureCtx = document.createElement("canvas").getContext("2d");
+
+function fontFamily(){ return $("fontSel").value; }
+function fontWeight(){ return $("weightSel").value; }
+function fontSpec(size){ return fontWeight() + " " + size + "px " + fontFamily(); }
+function measure(word, size){
+  measureCtx.font = fontSpec(size);
+  return measureCtx.measureText(word).width;
+}
+function currentPalette(){
+  var t = $("themeSel").value;
+  if (t === "custom") return [$("col1").value, $("col2").value, $("col3").value];
+  return PALETTES[t] || PALETTES.studio;
+}
+function analyzeOpts(){
+  return { minLen: Number($("minLen").value), removeStop: $("stopChk").checked, removeNumbers: $("numChk").checked, phrases: $("phraseChk").checked };
+}
+function rebuildAnalysis(){
+  excluded = {}; highlighted = {}; boosts = {}; manual = {};
+  RAW = analyze(textIn.value, analyzeOpts());
+  applyEdits();
+}
+function applyEdits(){
+  var map = {};
+  RAW.entries.forEach(function(e){ map[e.word] = { word:e.word, count:e.count, phrase:e.phrase }; });
+  Object.keys(manual).forEach(function(w){
+    if (map[w]) map[w].count = manual[w];
+    else map[w] = { word:w, count:manual[w], phrase: w.indexOf(" ") > 0 };
+  });
+  VIEW = Object.keys(map).map(function(w){ return map[w]; })
+    .filter(function(e){ return !excluded[e.word]; })
+    .map(function(e){ return { word:e.word, count:e.count, phrase:e.phrase, boost: boosts[e.word] || 1, highlight: !!highlighted[e.word] }; });
+  VIEW.sort(function(x, y){ return (y.count * (y.boost || 1)) - (x.count * (x.boost || 1)) || (x.word < y.word ? -1 : 1); });
+  VIEW = VIEW.slice(0, Number($("maxWords").value));
+  renderFreqTable();
+  relayout();
+}
+function currentLayout(){
+  var opts = {
+    width: BASE_W, height: BASE_H, seed: seed,
+    shape: $("shapeSel").value, customGrid: customGrid,
+    palette: currentPalette(), orientation: $("orientSel").value,
+    padding: Number($("padRange").value), tallScript: /Nastaliq|Arabic/.test(fontFamily())
+  };
+  return layoutWords(VIEW, opts, measure);
+}
+function relayout(){
+  PLACED = currentLayout();
+  draw(ctx, 1);
+  $("placeStat").textContent = PLACED.length ? "— " + PLACED.length + " of " + VIEW.length + " words placed" : "";
+  textStat.innerHTML = RAW.total ? ("<b>" + RAW.total + "</b> words analysed · <b>" + RAW.unique + "</b> unique · showing top <b>" + VIEW.length + "</b>") : "";
+}
+function draw(c, scale, forExport){
+  var bg = $("bgSel").value;
+  c.setTransform(scale, 0, 0, scale, 0, 0);
+  if (bg === "transparent"){
+    if (!forExport){ c.clearRect(0, 0, BASE_W, BASE_H); $("canvasWrap").classList.add("checker"); }
+  } else {
+    $("canvasWrap").classList.remove("checker");
+    c.fillStyle = bg; c.fillRect(0, 0, BASE_W, BASE_H);
+  }
+  c.textAlign = "center"; c.textBaseline = "middle";
+  PLACED.forEach(function(p){
+    c.save();
+    c.translate(p.x, p.y);
+    if (p.rotate) c.rotate(p.rotate * Math.PI / 180);
+    c.font = fontSpec(p.size);
+    c.fillStyle = p.color;
+    c.fillText(p.word, 0, 0);
+    c.restore();
+  });
+  c.setTransform(1, 0, 0, 1);
+}
+function renderFreqTable(){
+  var wrap = $("freqWrap");
+  var total = RAW.entries.reduce(function(s, e){ return s + e.count; }, 0);
+  if (!RAW.entries.length){ wrap.innerHTML = '<div class="stat">No words yet — add text above.</div>'; return; }
+  var rows = RAW.entries.slice(0, 30).map(function(e){
+    var pct = total ? (e.count / total * 100).toFixed(1) : "0";
+    var star = highlighted[e.word] ? ' class="mini on"' : ' class="mini"';
+    var bst = boosts[e.word] ? " ×" + boosts[e.word].toFixed(2).replace(/\.?0+$/, "") : "";
+    return "<tr><td>" + e.word.replace(/</g, "&lt;") + bst + "</td><td class='n'>" + e.count + "</td><td class='n'>" + pct + "%</td>" +
+      "<td style='white-space:nowrap;'><button" + star + " data-act='star' data-w='" + encodeURIComponent(e.word) + "' title='Highlight'>★</button> " +
+      "<button class='mini' data-act='boost' data-w='" + encodeURIComponent(e.word) + "' title='Make bigger'>+</button> " +
+      "<button class='mini' data-act='del' data-w='" + encodeURIComponent(e.word) + "' title='Remove word'>✕</button></td></tr>";
+  }).join("");
+  wrap.innerHTML = "<table class='freq'><thead><tr><th>Word / phrase</th><th style='text-align:right;'>Count</th><th style='text-align:right;'>Share</th><th></th></tr></thead><tbody>" + rows + "</tbody></table>" +
+    (RAW.entries.length > 30 ? '<div class="stat">Showing the top 30 of ' + RAW.entries.length + ' — the cloud uses the top ' + $("maxWords").value + '.</div>' : "");
+  wrap.querySelectorAll("button[data-act]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var w = decodeURIComponent(b.getAttribute("data-w")), act = b.getAttribute("data-act");
+      if (act === "del") excluded[w] = 1;
+      if (act === "star") highlighted[w] = !highlighted[w];
+      if (act === "boost") boosts[w] = Math.min(3, (boosts[w] || 1) * 1.25);
+      applyEdits();
+    });
+  });
+}
+
+/* ---------- text & file intake ---------- */
+var debounce = null;
+textIn.addEventListener("input", function(){ clearTimeout(debounce); debounce = setTimeout(rebuildAnalysis, 250); });
+$("clearBtn").addEventListener("click", function(){ textIn.value = ""; fileErr.style.display = "none"; rebuildAnalysis(); textIn.focus(); });
+$("sampleBtn").addEventListener("click", function(){
+  textIn.value = "Research, education, research, innovation, science, learning, education, technology, data, innovation, research, knowledge, science, learning, development, research, technology. Food safety protects every family. Food safety begins with clean water, safe storage and honest labels. Students learn food science to protect public health, reduce waste and build better food systems. In our university, research students study food chemistry, food microbiology and nutrition. Good data helps teachers teach, helps farmers store grain safely, and helps families choose healthy food every day.";
+  rebuildAnalysis();
+});
+$("fileBtn").addEventListener("click", function(){ $("fileIn").click(); });
+$("fileIn").addEventListener("change", async function(){
+  var f = $("fileIn").files[0];
+  if (!f) return;
+  fileErr.style.display = "none";
+  fileStat.textContent = "Reading " + f.name + " …";
+  try {
+    var ext = (f.name.split(".").pop() || "").toLowerCase();
+    var text = "";
+    if (ext === "docx") text = await extractDocxText(await f.arrayBuffer());
+    else if (ext === "pdf") text = await extractPdfText(await f.arrayBuffer());
+    else if (ext === "xlsx") text = await extractXlsxText(await f.arrayBuffer());
+    else if (ext === "txt" || ext === "md" || ext === "csv") text = await f.text();
+    else throw new Error("Unsupported file type ." + ext);
+    if (!text || text.trim().length < 3) throw new Error("No readable text was found in " + f.name + ".");
+    textIn.value = text;
+    fileStat.textContent = "Loaded " + f.name + " (" + text.length.toLocaleString() + " characters). Files are read locally — nothing is uploaded.";
+    rebuildAnalysis();
+  } catch (err) {
+    fileErr.textContent = err.message || "That file could not be read.";
+    fileErr.style.display = "block";
+    fileStat.textContent = "Files accepted: TXT, MD, CSV, DOCX, PDF, XLSX — read locally on your device, never uploaded.";
+  }
+  $("fileIn").value = "";
+});
+
+/* ---------- analysis controls ---------- */
+["maxWords", "minLen"].forEach(function(id){
+  $(id).addEventListener("input", function(){
+    $(id + "Val").textContent = $(id).value;
+    if (id === "minLen") rebuildAnalysis(); else applyEdits();
+  });
+});
+["stopChk", "numChk", "phraseChk"].forEach(function(id){ $(id).addEventListener("change", rebuildAnalysis); });
+$("copyCsvBtn").addEventListener("click", function(){
+  var csv = freqToCSV(RAW.entries, RAW.entries.reduce(function(s, e){ return s + e.count; }, 0));
+  function done(){ var b = $("copyCsvBtn"); var old = b.textContent; b.textContent = "Copied ✓"; setTimeout(function(){ b.textContent = old; }, 1500); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(csv).then(done).catch(function(){ fallback(); });
+  else fallback();
+  function fallback(){
+    var ta = document.createElement("textarea"); ta.value = csv; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+});
+$("dlCsvBtn").addEventListener("click", function(){
+  download("word-frequency.csv", new Blob([freqToCSV(RAW.entries, RAW.entries.reduce(function(s, e){ return s + e.count; }, 0))], { type:"text/csv" }));
+});
+$("addWordBtn").addEventListener("click", function(){
+  var w = $("addWord").value.trim().toLowerCase();
+  var c = Math.max(1, Math.floor(Number($("addCount").value) || 0));
+  if (!w || !c) return;
+  manual[w] = c;
+  delete excluded[w];
+  $("addWord").value = "";
+  applyEdits();
+});
+
+/* ---------- design controls ---------- */
+["shapeSel", "fontSel", "weightSel", "orientSel", "bgSel"].forEach(function(id){ $(id).addEventListener("change", function(){
+  if (id === "shapeSel") $("maskRow").style.display = $("shapeSel").value === "custom" ? "" : "none";
+  relayout();
+}); });
+$("themeSel").addEventListener("change", function(){
+  $("customRow").style.display = $("themeSel").value === "custom" ? "" : "none";
+  relayout();
+});
+["col1", "col2", "col3"].forEach(function(id){ $(id).addEventListener("input", relayout); });
+$("padRange").addEventListener("input", function(){ $("padVal").textContent = $("padRange").value; relayout(); });
+$("regenBtn").addEventListener("click", function(){ seed = (seed * 9301 + 49297) % 233280; relayout(); });
+$("maskBtn").addEventListener("click", function(){ $("maskIn").click(); });
+$("maskIn").addEventListener("change", function(){
+  var f = $("maskIn").files[0];
+  if (!f) return;
+  var img = new Image();
+  img.onload = function(){
+    var gw = 192, gh = 120, mc = document.createElement("canvas");
+    mc.width = gw; mc.height = gh;
+    var mctx = mc.getContext("2d");
+    mctx.drawImage(img, 0, 0, gw, gh);
+    var data = mctx.getImageData(0, 0, gw, gh).data;
+    var cells = new Uint8Array(gw * gh);
+    for (var i = 0; i < gw * gh; i++){
+      var a = data[i * 4 + 3] / 255;
+      var lum = (0.2126 * data[i * 4] + 0.7152 * data[i * 4 + 1] + 0.0722 * data[i * 4 + 2]) / 255;
+      cells[i] = (a * (1 - lum) > 0.45) ? 1 : 0;
+    }
+    customGrid = { w: gw, h: gh, cells: cells };
+    URL.revokeObjectURL(img.src);
+    relayout();
+  };
+  img.src = URL.createObjectURL(f);
+  $("maskIn").value = "";
+});
+
+/* ---------- click a word ---------- */
+canvas.addEventListener("click", function(e){
+  var rect = canvas.getBoundingClientRect();
+  var x = (e.clientX - rect.left) * BASE_W / rect.width;
+  var y = (e.clientY - rect.top) * BASE_H / rect.height;
+  var total = RAW.entries.reduce(function(s, en){ return s + en.count; }, 0);
+  for (var i = PLACED.length - 1; i >= 0; i--){
+    var p = PLACED[i];
+    if (Math.abs(x - p.x) <= p.w / 2 && Math.abs(y - p.y) <= p.h / 2){
+      $("clickInfo").textContent = "“" + p.word + "” — " + p.count + (p.count === 1 ? " occurrence" : " occurrences") + (total ? " (" + (p.count / total * 100).toFixed(1) + "% of kept words)" : "");
+      return;
+    }
+  }
+  $("clickInfo").textContent = "Tip: click any word in the cloud to see its frequency.";
+});
+
+/* ---------- exports ---------- */
+function download(name, blob){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 400);
+}
+function exportCanvas(scale, flattenBg){
+  var oc = document.createElement("canvas");
+  oc.width = BASE_W * scale; oc.height = BASE_H * scale;
+  var octx = oc.getContext("2d");
+  if (flattenBg){
+    octx.fillStyle = $("bgSel").value === "transparent" ? "#FFFFFF" : $("bgSel").value;
+    octx.fillRect(0, 0, oc.width, oc.height);
+    var keepBg = $("bgSel").value;
+    draw(octx, scale, true);
+    void keepBg;
+  } else {
+    draw(octx, scale, true);
+  }
+  return oc;
+}
+$("pngBtn").addEventListener("click", function(){
+  var s = Number($("sizeSel").value);
+  exportCanvas(s, false).toBlob(function(b){ if (b) download("word-cloud.png", b); }, "image/png");
+});
+$("jpgBtn").addEventListener("click", function(){
+  var s = Number($("sizeSel").value);
+  exportCanvas(s, true).toBlob(function(b){ if (b) download("word-cloud.jpg", b); }, "image/jpeg", 0.92);
+});
+$("svgBtn").addEventListener("click", function(){
+  var s = Number($("sizeSel").value);
+  var scaled = PLACED.map(function(p){ return { word:p.word, count:p.count, x:p.x * s, y:p.y * s, size:p.size * s, rotate:p.rotate, color:p.color }; });
+  var svg = buildSVG(scaled, { width: BASE_W * s, height: BASE_H * s, background: $("bgSel").value, fontFamily: fontFamily(), fontWeight: fontWeight() });
+  download("word-cloud.svg", new Blob([svg], { type:"image/svg+xml" }));
+});
+$("pdfBtn").addEventListener("click", function(){
+  var s = Number($("sizeSel").value);
+  var oc = exportCanvas(s, true);
+  var octx = oc.getContext("2d");
+  var img = octx.getImageData(0, 0, oc.width, oc.height).data;
+  var rgb = new Uint8Array(oc.width * oc.height * 3);
+  for (var i = 0, j = 0; i < img.length; i += 4){ rgb[j++] = img[i]; rgb[j++] = img[i + 1]; rgb[j++] = img[i + 2]; }
+  var pdf = buildImagePDF(rgb, oc.width, oc.height);
+  download("word-cloud.pdf", new Blob([pdf], { type:"application/pdf" }));
+});
+
+/* ---------- init ---------- */
+textIn.value = "Research, Education, Research, Innovation, Science, Learning, Education, Technology, Data, Innovation, Research, Knowledge, Science, Learning, Development, Research, Technology";
+rebuildAnalysis();
+</script>
+</body>
+</html>
